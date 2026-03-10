@@ -1,0 +1,68 @@
+[project]
+name = "futurae-assignment"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "duckdb>=1.4.4",
+  "pydantic>=2.12.5",
+  "pydantic-settings>=2.13.1",
+]
+
+[dependency-groups]
+dev = [
+  "duckdb-cli==1.4.4",
+  "pytest>=9.0.2",
+  "ruff>=0.15.5",
+  "sqlfluff>=4.0.4",
+  "ty>=0.0.21",
+]
+
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+  "D",      # docstrings
+  "EM101",  # Exceptions with string literals
+  "TRY003", # Long exception messages
+  "EM102",  # f-strings in exceptions
+  "G004",   # f-strings in exceptions
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/test_*.py" = ["ANN", "S101", "SLF001"]
+"**/pipeline/event_loader.py" = ["S608"]
+"**/pipeline/event_deduper.py" = ["S608"]
+"**/pipeline/event_aggregator.py" = ["S608"]
+
+[tool.sqlfluff.core]
+dialect = "duckdb"
+rules = "all"
+max_line_length = 120
+fix_even_unparsable = true
+processes = -1
+
+[tool.sqlfluff.indentation]
+indent_unit = "space"
+tab_space_size = 4
+indented_joins = true
+
+[tool.sqlfluff.layout.type.comma]
+spacing_before = "touch"
+line_position = "leading"
+
+[tool.sqlfluff.rules.capitalisation.keywords]
+capitalisation_policy = "lower"
+
+[tool.sqlfluff.rules.capitalisation.identifiers]
+extended_capitalisation_policy = "lower"
+
+[tool.sqlfluff.rules.capitalisation.functions]
+extended_capitalisation_policy = "lower"
+
+[tool.sqlfluff.rules.capitalisation.literals]
+capitalisation_policy = "lower"
+
+[tool.sqlfluff.rules.capitalisation.types]
+extended_capitalisation_policy = "lower"
