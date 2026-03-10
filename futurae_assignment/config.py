@@ -20,6 +20,7 @@ class Config(BaseSettings):
     database: DatabaseConfig = DatabaseConfig()
     data_source_file: FilePath = root_path / Path("data/HomeAssignmentEvents.jsonl")
     ddl_dir: DirectoryPath = root_path / Path("sql/ddl")
+    dml_dir: DirectoryPath = root_path / Path("sql/dml")
 
     model_config = SettingsConfigDict(env_nested_delimiter="__")
 

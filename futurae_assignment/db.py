@@ -1,8 +1,10 @@
 from collections.abc import Iterator
+from pathlib import Path
 from typing import Any, Self
 
 import duckdb
 from duckdb import DuckDBPyConnection
+from jinja2 import Template
 
 from futurae_assignment.config import DatabaseConfig
 from futurae_assignment.exceptions import DatabaseError
@@ -39,6 +41,21 @@ class Database:
             raise DatabaseError("Database does not have an active connection.")
 
         self._conn.execute(query, parameters)
+
+    def execute_sql_file(
+        self,
+        path: Path,
+        **context: str,
+    ) -> None:
+        query = Template(path.read_text()).render(**context)
+        self.execute(query)
+
+    def count(self, table: str) -> int:
+        query = Template("SELECT count(*) AS total FROM {{ table }}").render(
+            table=table,
+        )
+        result = next(self.query(query))
+        return result["total"]
 
     def query(self, query: str, parameters: QueryParams = ()) -> Iterator[Row]:
         if not self._conn:

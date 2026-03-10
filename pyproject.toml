@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
   "duckdb>=1.4.4",
+  "jinja2>=3.1.6",
   "pydantic>=2.12.5",
   "pydantic-settings>=2.13.1",
 ]
@@ -32,16 +33,19 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "**/test_*.py" = ["ANN", "S101", "SLF001"]
-"**/pipeline/event_loader.py" = ["S608"]
-"**/pipeline/event_deduper.py" = ["S608"]
-"**/pipeline/event_aggregator.py" = ["S608"]
 
 [tool.sqlfluff.core]
 dialect = "duckdb"
+templater = "jinja"
 rules = "all"
 max_line_length = 120
 fix_even_unparsable = true
 processes = -1
+
+[tool.sqlfluff.templater.jinja.context]
+source_table = "source_table"
+target_table = "target_table"
+processed_by = "sqlfluff"
 
 [tool.sqlfluff.indentation]
 indent_unit = "space"

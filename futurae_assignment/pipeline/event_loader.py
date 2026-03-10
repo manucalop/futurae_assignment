@@ -1,3 +1,5 @@
+from jinja2 import Template
+
 from futurae_assignment.db import Database
 from futurae_assignment.logging import get_logger
 from futurae_assignment.models import Event, EventStream, InvalidEvent
@@ -6,9 +8,8 @@ logger = get_logger(__name__)
 
 
 def _load_valid_event(db: Database, table_id: str, e: Event) -> None:
-    db.execute(
-        query=f"""
-        INSERT INTO {table_id} (
+    query = Template("""
+        INSERT INTO {{ table_id }} (
             event_id
             , event_ts
             , service
@@ -21,7 +22,9 @@ def _load_valid_event(db: Database, table_id: str, e: Event) -> None:
             , processed_by
             , _offset
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
+    """).render(table_id=table_id)
+    db.execute(
+        query=query,
         parameters=(
             e.event_id,
             e.event_ts,
@@ -39,16 +42,17 @@ def _load_valid_event(db: Database, table_id: str, e: Event) -> None:
 
 
 def _load_invalid_event(db: Database, table_id: str, e: InvalidEvent) -> None:
-    db.execute(
-        query=f"""
-        INSERT INTO {table_id} (
+    query = Template("""
+        INSERT INTO {{ table_id }} (
             raw
             , errors
             , processed_at
             , processed_by
             , _offset
         ) VALUES (?, ?, ?, ?, ?)
-        """,
+    """).render(table_id=table_id)
+    db.execute(
+        query=query,
         parameters=(
             e.raw,
             e.errors,

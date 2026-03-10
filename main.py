@@ -19,11 +19,13 @@ with Database(config=config.database) as db:
     )
     deduplicate_events(
         db,
+        dml_dir=config.dml_dir,
         source_table_id="events_valid",
         target_table_id="events",
     )
     aggregate_metrics(
         db,
+        dml_dir=config.dml_dir,
         source_table_id="events",
         target_table_id="metrics",
     )
