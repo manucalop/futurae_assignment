@@ -1,9 +1,10 @@
 from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, Self
+from typing import Annotated, Any, Self
 
 import duckdb
 from duckdb import DuckDBPyConnection
+from fastapi import Depends
 from jinja2 import Template
 
 from futurae_assignment.config import DatabaseConfig
@@ -15,26 +16,23 @@ type Row = dict[str, Any]
 
 
 class Database:
-    def __init__(self, config: DatabaseConfig) -> None:
-        self.config = config
+    def __init__(self, config: DatabaseConfig | None = None) -> None:
+        self._path = str(config.path) if config else ":memory:"
         self.logger = get_logger(self.__class__.__name__)
         self._conn: DuckDBPyConnection | None = None
 
     def __enter__(self) -> Self:
         try:
-            self._conn = duckdb.connect(self.config.path)
+            self._conn = duckdb.connect(self._path)
         except duckdb.DatabaseError as exception:
             raise DatabaseError(
-                f"Failed to connect to {self.config.path}",
+                f"Failed to connect to {self._path}",
             ) from exception
         return self
 
     def __exit__(self, *_: object) -> None:
         if self._conn:
             self._conn = self._conn.close()
-
-    def _get_connection(self) -> DuckDBPyConnection:
-        return duckdb.connect(self.config.path)
 
     def execute(self, query: str, parameters: QueryParams = ()) -> None:
         if not self._conn:
@@ -68,3 +66,11 @@ class Database:
         columns = [desc[0] for desc in result.description]
         while row := result.fetchone():
             yield dict(zip(columns, row, strict=True))
+
+
+def get_db() -> Iterator[Database]:
+    with Database() as db:
+        yield db
+
+
+DB = Annotated[Database, Depends(get_db)]
