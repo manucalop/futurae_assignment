@@ -171,5 +171,19 @@ Tests use real implementations (actual Beam pipelines, real DuckDB connections, 
 
 ### What I would improve next
 
-1. **Dead-letter queue**: instead of writing invalid events to Parquet, publish them to a separate Kafka topic. This enables automated retries after pipeline fixes and integrates with alerting (consumers on the DLQ topic trigger PagerDuty/Slack).
-2. **Schema registry**: enforce a Protobuf schema on the Kafka topic using Pub/Sub schemas or a GCP-hosted schema registry. This catches schema mismatches at the producer before bad data enters the pipeline, shifting validation left.
+1. **Write the README without AI assistance**: time constraints meant the design sections (Part 2, Part 4) were drafted with LLM help and then corrected. Given more time, I would redact these sections entirely by hand to better reflect my own voice and reasoning.
+2. **Frontend for visualization and business-critical queries**: build a dashboard that surfaces the metrics visually — latency trends, error rate spikes, per-service health. Refine the API endpoints to answer business-critical questions directly (e.g., "which service has the highest error rate in the last hour?", "is checkout latency degrading?") rather than exposing raw data that consumers have to aggregate themselves.
+
+## Use of LLMs
+
+This project was built with assistance from Claude Code. The LLM was used as a development accelerator — not as an autopilot. Specifically:
+
+- **Scaffolding and boilerplate**: initial project structure, Pydantic model definitions, FastAPI router wiring, and test fixtures were generated with LLM assistance and then reviewed and adjusted.
+
+- **Refactoring**: dependency injection refactoring (removing the config singleton, wiring `Depends` chains) was planned collaboratively and executed by the LLM with human review at each step.
+
+- **README and design sections**: the LLM produced initial drafts; the author drove the content through iterative review — correcting technical claims, challenging assumptions (e.g., switching from event-time to ingestion-time partitioning), and shaping the narrative. The final README is user-driven, AI-enhanced.
+
+- **Brainstorming and technical discussions**: the LLM served as a sounding board for design trade-offs — e.g., whether `user_id` should be nullable, partitioning strategies, and DI architecture options. The author made the final call on each decision.
+
+- **Not used for**: core pipeline logic decisions (what to validate, what to drop, deduplication strategy), data exploration, or architectural choices — those were driven by the author based on domain understanding.
