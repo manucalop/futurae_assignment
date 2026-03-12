@@ -1,12 +1,2 @@
-class PipelineError(Exception):
+class DatabaseError(Exception):
     pass
-
-
-class DatabaseError(PipelineError):
-    pass
-
-
-class ParsingError(PipelineError):
-    pass
-
-

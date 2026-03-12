@@ -3,30 +3,30 @@ from datetime import datetime
 from fastapi import APIRouter
 
 from futurae_assignment.api.models import EventsResponse
-from futurae_assignment.config import config
+from futurae_assignment.config import AppConfig
 from futurae_assignment.db import DB
 from futurae_assignment.models import Event
 
 router = APIRouter(prefix="/events", tags=["events"])
 
-EVENTS_PARQUET = f"{config.pipeline.events_path}-*.parquet"
-
 
 @router.get("")
 def list_events(
     db: DB,
+    cfg: AppConfig,
     service: str | None = None,
     event_type: str | None = None,
     start_ts: datetime | None = None,
     end_ts: datetime | None = None,
 ) -> EventsResponse:
+    parquet = cfg.pipeline.parquet_glob("events")
     rows = db.query(
         f"""
-        SELECT * FROM read_parquet('{EVENTS_PARQUET}')
-        WHERE ($1 IS NULL OR service = $1)
-        AND ($2 IS NULL OR event_type = $2)
-        AND ($3 IS NULL OR event_ts >= $3)
-        AND ($4 IS NULL OR event_ts <= $4)
+        select * from read_parquet('{parquet}')
+        where ($1 is null or service = $1)
+        and ($2 is null or event_type = $2)
+        and ($3 is null or event_ts >= $3)
+        and ($4 is null or event_ts <= $4)
         """,  # noqa: S608
         (service, event_type, start_ts, end_ts),
     )
@@ -34,12 +34,13 @@ def list_events(
 
 
 @router.get("/{event_id}")
-def get_event(db: DB, event_id: str) -> Event | None:
+def get_event(db: DB, cfg: AppConfig, event_id: str) -> Event | None:
+    parquet = cfg.pipeline.parquet_glob("events")
     rows = list(
         db.query(
             f"""
-            SELECT * FROM read_parquet('{EVENTS_PARQUET}')
-            WHERE event_id = $1 LIMIT 1
+            select * from read_parquet('{parquet}')
+            where event_id = $1 limit 1
             """,  # noqa: S608
             (event_id,),
         ),

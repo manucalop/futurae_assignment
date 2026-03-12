@@ -1,4 +1,3 @@
-from collections.abc import Iterator
 from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Annotated, Any, NamedTuple
@@ -155,9 +154,6 @@ class InvalidEvent(BaseModel):
                 ("offset", pa.int64()),
             ],
         )
-
-
-type EventStream = Iterator[Event | InvalidEvent]
 
 
 class MetricsTuple(NamedTuple):

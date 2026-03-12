@@ -1,5 +1,7 @@
 from pathlib import Path
+from typing import Annotated
 
+from fastapi import Depends
 from pydantic import BaseModel, FilePath
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -35,6 +37,9 @@ class BeamPipelineConfig(BaseModel):
     def metrics_path(self) -> Path:
         return self.output_dir / "metrics"
 
+    def parquet_glob(self, name: str) -> str:
+        return f"{self.output_dir / name}-*.parquet"
+
 
 class Config(BaseSettings):
     logging: LoggingConfig = LoggingConfig()
@@ -45,3 +50,10 @@ class Config(BaseSettings):
 
 
 config = Config()
+
+
+def get_config() -> Config:
+    return config
+
+
+AppConfig = Annotated[Config, Depends(get_config)]
