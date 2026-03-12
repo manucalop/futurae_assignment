@@ -1,7 +1,7 @@
 from collections.abc import Iterator
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Annotated, Any
+from typing import Annotated, Any, NamedTuple
 
 import pyarrow as pa
 from pydantic import BaseModel, ConfigDict, Field
@@ -59,6 +59,19 @@ class EventType(StrEnum):
     REQUEST_STARTED = "request_started"
 
 
+class EventTuple(NamedTuple):
+    event_id: str
+    event_ts: datetime
+    service: str | None
+    event_type: str
+    latency_ms: int | None
+    status_code: int | None
+    user_id: str | None
+    processed_at: datetime
+    processed_by: str
+    offset: int | None
+
+
 class Event(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
@@ -71,10 +84,23 @@ class Event(BaseModel):
     latency_ms: Annotated[int | None, BeforeValidator(_parse_latency_ms)] = None
     status_code: Annotated[int | None, BeforeValidator(_parse_status_code)] = None
     user_id: str | None = None
-    raw: str | None = None
     processed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     processed_by: str = "futurae_assignment.pipeline"
     offset: int | None = None
+
+    def to_tuple(self) -> EventTuple:
+        return EventTuple(
+            event_id=self.event_id,
+            event_ts=self.event_ts,
+            service=str(self.service) if self.service else None,
+            event_type=str(self.event_type),
+            latency_ms=self.latency_ms,
+            status_code=self.status_code,
+            user_id=self.user_id,
+            processed_at=self.processed_at,
+            processed_by=self.processed_by,
+            offset=self.offset,
+        )
 
     @classmethod
     def arrow_schema(cls) -> pa.Schema:
@@ -87,12 +113,19 @@ class Event(BaseModel):
                 ("latency_ms", pa.int64()),
                 ("status_code", pa.int64()),
                 ("user_id", pa.string()),
-                ("raw", pa.string()),
                 ("processed_at", pa.timestamp("us", tz="UTC")),
                 ("processed_by", pa.string()),
                 ("offset", pa.int64()),
             ],
         )
+
+
+class InvalidEventTuple(NamedTuple):
+    raw: str
+    errors: list[str]
+    processed_at: datetime
+    processed_by: str
+    offset: int | None
 
 
 class InvalidEvent(BaseModel):
@@ -101,6 +134,15 @@ class InvalidEvent(BaseModel):
     processed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     processed_by: str = "futurae_assignment.pipeline"
     offset: int | None = None
+
+    def to_tuple(self) -> InvalidEventTuple:
+        return InvalidEventTuple(
+            raw=self.raw,
+            errors=self.errors,
+            processed_at=self.processed_at,
+            processed_by=self.processed_by,
+            offset=self.offset,
+        )
 
     @classmethod
     def arrow_schema(cls) -> pa.Schema:
@@ -118,6 +160,18 @@ class InvalidEvent(BaseModel):
 type EventStream = Iterator[Event | InvalidEvent]
 
 
+class MetricsTuple(NamedTuple):
+    service: str
+    event_date: str
+    event_hour: int
+    event_minute: int
+    request_count: int
+    avg_latency_ms: float
+    error_rate: float
+    processed_at: datetime
+    processed_by: str
+
+
 class Metrics(BaseModel):
     service: str
     event_date: str
@@ -128,6 +182,19 @@ class Metrics(BaseModel):
     error_rate: float
     processed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     processed_by: str = "futurae_assignment.pipeline"
+
+    def to_tuple(self) -> MetricsTuple:
+        return MetricsTuple(
+            service=self.service,
+            event_date=self.event_date,
+            event_hour=self.event_hour,
+            event_minute=self.event_minute,
+            request_count=self.request_count,
+            avg_latency_ms=self.avg_latency_ms,
+            error_rate=self.error_rate,
+            processed_at=self.processed_at,
+            processed_by=self.processed_by,
+        )
 
     @classmethod
     def arrow_schema(cls) -> pa.Schema:

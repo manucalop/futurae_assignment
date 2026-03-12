@@ -1,7 +1,6 @@
 import shutil
 
 import apache_beam as beam
-from apache_beam.io.parquetio import WriteToParquet
 
 from futurae_assignment.config import config
 from futurae_assignment.logging import get_logger
@@ -10,6 +9,7 @@ from futurae_assignment.pipeline.aggregator import AggregateMetrics
 from futurae_assignment.pipeline.deduper import DeduplicateEvents
 from futurae_assignment.pipeline.parser import INVALID_TAG, VALID_TAG, ParseEvents
 from futurae_assignment.pipeline.reader import ReadLines
+from futurae_assignment.pipeline.writer import WriteParquet
 
 logger = get_logger(__name__)
 
@@ -33,27 +33,21 @@ def run() -> None:
         deduplicated = results[VALID_TAG] | "Deduplicate" >> DeduplicateEvents()
         metrics = deduplicated | "AggregateMetrics" >> AggregateMetrics()
 
-        results[VALID_TAG] | "WriteValidEvents" >> WriteToParquet(
+        results[VALID_TAG] | "WriteValidEvents" >> WriteParquet(
             str(cfg.events_valid_path),
-            schema=Event.arrow_schema(),
-            file_name_suffix=".parquet",
+            Event.arrow_schema(),
         )
-        results[INVALID_TAG] | "WriteInvalidEvents" >> WriteToParquet(
+        results[INVALID_TAG] | "WriteInvalidEvents" >> WriteParquet(
             str(cfg.events_invalid_path),
-            schema=InvalidEvent.arrow_schema(),
-            file_name_suffix=".parquet",
+            InvalidEvent.arrow_schema(),
         )
-
-        deduplicated | "WriteEvents" >> WriteToParquet(
+        deduplicated | "WriteEvents" >> WriteParquet(
             str(cfg.events_path),
-            schema=Event.arrow_schema(),
-            file_name_suffix=".parquet",
+            Event.arrow_schema(),
         )
-
-        metrics | "WriteMetrics" >> WriteToParquet(
+        metrics | "WriteMetrics" >> WriteParquet(
             str(cfg.metrics_path),
-            schema=Metrics.arrow_schema(),
-            file_name_suffix=".parquet",
+            Metrics.arrow_schema(),
         )
 
     logger.info("Pipeline finished")

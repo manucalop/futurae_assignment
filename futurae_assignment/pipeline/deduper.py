@@ -1,16 +1,15 @@
-from typing import Any
-
 import apache_beam as beam
 from apache_beam.transforms.window import TimestampedValue
 from apache_beam.utils.timestamp import Timestamp
 
 from futurae_assignment.logging import get_logger
+from futurae_assignment.models import EventTuple
 
 logger = get_logger(__name__)
 
 
-def _stamp_event_time(event: dict[str, Any]) -> TimestampedValue:
-    return TimestampedValue(event, Timestamp.from_utc_datetime(event["event_ts"]))
+def _stamp_event_time(event: EventTuple) -> TimestampedValue:
+    return TimestampedValue(event, Timestamp.from_utc_datetime(event.event_ts))
 
 
 class DeduplicateEvents(beam.PTransform):
@@ -19,7 +18,7 @@ class DeduplicateEvents(beam.PTransform):
         return (
             pcoll
             | "StampEventTime" >> beam.Map(_stamp_event_time)
-            | "KeyByEventId" >> beam.Map(lambda e: (e["event_id"], e))
+            | "KeyByEventId" >> beam.Map(lambda e: (e.event_id, e))
             | "KeepLatest" >> beam.combiners.Latest.PerKey()
             | "DropKeys" >> beam.Values()
         )
