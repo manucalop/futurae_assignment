@@ -49,11 +49,8 @@ class Config(BaseSettings):
     model_config = SettingsConfigDict(env_nested_delimiter="__")
 
 
-config = Config()
-
-
 def get_config() -> Config:
-    return config
+    return Config()
 
 
 AppConfig = Annotated[Config, Depends(get_config)]

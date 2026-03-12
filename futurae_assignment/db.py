@@ -5,7 +5,7 @@ import duckdb
 from duckdb import DuckDBPyConnection
 from fastapi import Depends
 
-from futurae_assignment.config import DatabaseConfig
+from futurae_assignment.config import AppConfig, DatabaseConfig
 from futurae_assignment.exceptions import DatabaseError
 from futurae_assignment.logging import get_logger
 
@@ -51,8 +51,8 @@ class Database:
             yield dict(zip(columns, row, strict=True))
 
 
-def get_db() -> Iterator[Database]:
-    with Database() as db:
+def get_db(config: AppConfig) -> Iterator[Database]:
+    with Database(config.database) as db:
         yield db
 
 

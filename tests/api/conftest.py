@@ -7,7 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app import app
-from futurae_assignment.config import BeamPipelineConfig, Config, get_config
+from futurae_assignment.config import BeamPipelineConfig, Config, DatabaseConfig, get_config
 from futurae_assignment.models import Event
 
 
@@ -43,6 +43,7 @@ def client(events_parquet):
             input_path=Path(__file__),
             output_dir=events_parquet,
         ),
+        database=DatabaseConfig(path=events_parquet / "test.duckdb"),
     )
 
     app.dependency_overrides[get_config] = lambda: test_config
