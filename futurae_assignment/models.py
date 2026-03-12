@@ -65,7 +65,7 @@ class EventTuple(NamedTuple):
     event_type: str
     latency_ms: int | None
     status_code: int | None
-    user_id: str | None
+    user_id: str
     processed_at: datetime
     processed_by: str
     offset: int | None
@@ -82,7 +82,7 @@ class Event(BaseModel):
     event_type: EventType
     latency_ms: Annotated[int | None, BeforeValidator(_parse_latency_ms)] = None
     status_code: Annotated[int | None, BeforeValidator(_parse_status_code)] = None
-    user_id: str | None = None
+    user_id: str
     processed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     processed_by: str = "futurae_assignment.pipeline"
     offset: int | None = None

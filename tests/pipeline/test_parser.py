@@ -15,6 +15,7 @@ def _json_line(**fields):
         "service": "auth",
         "latency_ms": 100,
         "status_code": 200,
+        "user_id": "u1",
     }
     return json.dumps(defaults | fields)
 

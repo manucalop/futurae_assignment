@@ -14,6 +14,7 @@ def _make_event(**overrides):
         "service": "auth",
         "latency_ms": 100,
         "status_code": 200,
+        "user_id": "u1",
     }
     return Event(**(defaults | overrides))
 

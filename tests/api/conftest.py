@@ -7,7 +7,12 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app import app
-from futurae_assignment.config import BeamPipelineConfig, Config, DatabaseConfig, get_config
+from futurae_assignment.config import (
+    BeamPipelineConfig,
+    Config,
+    DatabaseConfig,
+    get_config,
+)
 from futurae_assignment.models import Event
 
 
@@ -25,7 +30,7 @@ def events_parquet(tmp_path):
             "event_type": ["request_completed", "request_completed", "request_failed"],
             "latency_ms": [100, 200, None],
             "status_code": [200, 500, 503],
-            "user_id": [None, None, None],
+            "user_id": ["u1", "u2", "u3"],
             "processed_at": [datetime(2025, 1, 15, tzinfo=UTC)] * 3,
             "processed_by": ["test"] * 3,
             "offset": [0, 1, 2],

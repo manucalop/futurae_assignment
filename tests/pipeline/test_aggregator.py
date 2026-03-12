@@ -16,7 +16,7 @@ def _make_event_tuple(**overrides):
         event_type="request_completed",
         latency_ms=100,
         status_code=200,
-        user_id=None,
+        user_id="u1",
         processed_at=datetime(2025, 1, 15, 10, 30, tzinfo=UTC),
         processed_by="test",
         offset=None,
