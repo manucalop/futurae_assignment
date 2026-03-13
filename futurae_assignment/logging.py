@@ -1,23 +1,15 @@
 import logging
 
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from futurae_assignment.config import LoggingConfig
 
 
-class LoggingSettings(BaseSettings):
-    level: str = "DEBUG"
-    format: str = "%(asctime)s - %(name)s - %(levelname)s: %(message)s"
-
-    model_config = SettingsConfigDict(env_prefix="LOGGING__")
-
-
-_settings = LoggingSettings()
-
-
-def get_logger(name: str, settings: LoggingSettings = _settings) -> logging.Logger:
+def get_logger(name: str, config: LoggingConfig = LoggingConfig()) -> logging.Logger:
     logger = logging.getLogger(name)
-    formatter = logging.Formatter(settings.format)
-    handler = logging.StreamHandler()
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    logger.setLevel(settings.level)
+    if not logger.handlers:
+        formatter = logging.Formatter(config.format)
+        handler = logging.StreamHandler()
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        logger.setLevel(config.level)
+        logger.propagate = False
     return logger

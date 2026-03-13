@@ -4,4 +4,4 @@ __pycache__
 .pytest_cache
 .ruff_cache
 .claude
-data/output.db
+data/output/*

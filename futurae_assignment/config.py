@@ -1,6 +1,8 @@
 from pathlib import Path
+from typing import Annotated
 
-from pydantic import BaseModel, DirectoryPath, FilePath
+from fastapi import Depends
+from pydantic import BaseModel, FilePath
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 root_path = Path(__file__).parent.parent
@@ -12,17 +14,43 @@ class LoggingConfig(BaseModel):
 
 
 class DatabaseConfig(BaseModel):
-    path: FilePath = root_path / Path("data/output.db")
+    path: Path = root_path / "data" / "output" / "warehouse.duckdb"
+
+
+class BeamPipelineConfig(BaseModel):
+    input_path: FilePath = root_path / "data" / "input" / "HomeAssignmentEvents.jsonl"
+    output_dir: Path = root_path / "data" / "output"
+
+    @property
+    def events_valid_path(self) -> Path:
+        return self.output_dir / "events_valid"
+
+    @property
+    def events_invalid_path(self) -> Path:
+        return self.output_dir / "events_invalid"
+
+    @property
+    def events_path(self) -> Path:
+        return self.output_dir / "events"
+
+    @property
+    def metrics_path(self) -> Path:
+        return self.output_dir / "metrics"
+
+    def parquet_glob(self, name: str) -> str:
+        return f"{self.output_dir / name}-*.parquet"
 
 
 class Config(BaseSettings):
     logging: LoggingConfig = LoggingConfig()
     database: DatabaseConfig = DatabaseConfig()
-    data_source_file: FilePath = root_path / Path("data/HomeAssignmentEvents.jsonl")
-    ddl_dir: DirectoryPath = root_path / Path("sql/ddl")
-    dml_dir: DirectoryPath = root_path / Path("sql/dml")
+    pipeline: BeamPipelineConfig = BeamPipelineConfig()
 
     model_config = SettingsConfigDict(env_nested_delimiter="__")
 
 
-config = Config()
+def get_config() -> Config:
+    return Config()
+
+
+AppConfig = Annotated[Config, Depends(get_config)]
