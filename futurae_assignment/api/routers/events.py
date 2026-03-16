@@ -1,8 +1,8 @@
-from datetime import datetime
+from typing import Annotated
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 
-from futurae_assignment.api.models import EventsResponse
+from futurae_assignment.api.models import EventsRequest, EventsResponse
 from futurae_assignment.config import AppConfig
 from futurae_assignment.db import DB
 from futurae_assignment.models import Event
@@ -13,13 +13,10 @@ router = APIRouter(prefix="/events", tags=["events"])
 @router.get("")
 def list_events(
     db: DB,
-    cfg: AppConfig,
-    service: str | None = None,
-    event_type: str | None = None,
-    start_ts: datetime | None = None,
-    end_ts: datetime | None = None,
+    config: AppConfig,
+    request: Annotated[EventsRequest, Query()],
 ) -> EventsResponse:
-    parquet = cfg.pipeline.parquet_glob("events")
+    parquet = config.pipeline.parquet_glob("events")
     rows = db.query(
         f"""
         select * from read_parquet('{parquet}')
@@ -28,14 +25,14 @@ def list_events(
         and ($3 is null or event_ts >= $3)
         and ($4 is null or event_ts <= $4)
         """,  # noqa: S608
-        (service, event_type, start_ts, end_ts),
+        (request.service, request.event_type, request.start_ts, request.end_ts),
     )
     return EventsResponse(data=[Event(**row) for row in rows])
 
 
 @router.get("/{event_id}")
-def get_event(db: DB, cfg: AppConfig, event_id: str) -> Event | None:
-    parquet = cfg.pipeline.parquet_glob("events")
+def get_event(db: DB, config: AppConfig, event_id: str) -> Event | None:
+    parquet = config.pipeline.parquet_glob("events")
     rows = list(
         db.query(
             f"""
