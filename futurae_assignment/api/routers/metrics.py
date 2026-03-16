@@ -21,29 +21,18 @@ def list_metrics(
     request: Annotated[MetricsRequest, Query()],
 ) -> MetricsResponse:
     parquet = config.pipeline.parquet_glob("metrics")
-    start_date = request.start_ts.date() if request.start_ts else None
-    start_hour = request.start_ts.hour if request.start_ts else None
-    start_minute = request.start_ts.minute if request.start_ts else None
-    end_date = request.end_ts.date() if request.end_ts else None
-    end_hour = request.end_ts.hour if request.end_ts else None
-    end_minute = request.end_ts.minute if request.end_ts else None
-
     rows = db.query(
         f"""
         select * from read_parquet('{parquet}')
         where ($1 is null or service = $1)
-        and ($2 is null or (event_date::date, event_hour, event_minute) >= ($2, $3, $4))
-        and ($5 is null or (event_date::date, event_hour, event_minute) <= ($5, $6, $7))
+        and ($2 is null or event_date::timestamp
+            + event_hour * interval '1 hour'
+            + event_minute * interval '1 minute' >= $2)
+        and ($3 is null or event_date::timestamp
+            + event_hour * interval '1 hour'
+            + event_minute * interval '1 minute' <= $3)
         """,  # noqa: S608
-        (
-            request.service,
-            start_date,
-            start_hour,
-            start_minute,
-            end_date,
-            end_hour,
-            end_minute,
-        ),
+        (request.service, request.start_ts, request.end_ts),
     )
     return MetricsResponse(data=[Metrics(**row) for row in rows])
 
