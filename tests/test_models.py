@@ -80,8 +80,7 @@ class TestEventToTuple:
 
 class TestInvalidEvent:
     def test_to_tuple_roundtrip(self):
-        invalid = InvalidEvent(raw='{"bad": "json"}', errors=["missing field"], offset=5)
+        invalid = InvalidEvent(raw='{"bad": "json"}', errors=["missing field"])
         t = invalid.to_tuple()
         assert t.raw == '{"bad": "json"}'
         assert t.errors == ["missing field"]
-        assert t.offset == 5

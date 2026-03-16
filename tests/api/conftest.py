@@ -33,7 +33,6 @@ def events_parquet(tmp_path):
             "user_id": ["u1", "u2", "u3"],
             "processed_at": [datetime(2025, 1, 15, tzinfo=UTC)] * 3,
             "processed_by": ["test"] * 3,
-            "offset": [0, 1, 2],
         },
         schema=Event.arrow_schema(),
     )

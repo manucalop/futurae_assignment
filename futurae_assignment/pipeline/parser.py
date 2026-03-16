@@ -21,18 +21,18 @@ class _ValidateEvent(beam.DoFn):
         offset, raw = element
         try:
             record = json.loads(raw)
-            event = Event(**record, offset=offset)
+            event = Event(**record)
             yield beam.pvalue.TaggedOutput(VALID_TAG, event.to_tuple())
 
         except json.JSONDecodeError as exc:
             logger.debug("JSON decode error at offset %d: %s", offset, exc)
-            invalid = InvalidEvent(raw=raw, errors=[str(exc)], offset=offset)
+            invalid = InvalidEvent(raw=raw, errors=[str(exc)])
             yield beam.pvalue.TaggedOutput(INVALID_TAG, invalid.to_tuple())
 
         except ValidationError as exc:
             errors = [str(e) for e in exc.errors()]
             logger.debug("Validation error at offset %d: %s", offset, errors)
-            invalid = InvalidEvent(raw=raw, errors=errors, offset=offset)
+            invalid = InvalidEvent(raw=raw, errors=errors)
             yield beam.pvalue.TaggedOutput(INVALID_TAG, invalid.to_tuple())
 
 

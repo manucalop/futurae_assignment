@@ -68,7 +68,6 @@ class EventTuple(NamedTuple):
     user_id: str
     processed_at: datetime
     processed_by: str
-    offset: int | None
 
 
 class Event(BaseModel):
@@ -85,7 +84,6 @@ class Event(BaseModel):
     user_id: str
     processed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     processed_by: str = "futurae_assignment.pipeline"
-    offset: int | None = None
 
     def to_tuple(self) -> EventTuple:
         return EventTuple(
@@ -98,7 +96,6 @@ class Event(BaseModel):
             user_id=self.user_id,
             processed_at=self.processed_at,
             processed_by=self.processed_by,
-            offset=self.offset,
         )
 
     @classmethod
@@ -114,7 +111,6 @@ class Event(BaseModel):
                 ("user_id", pa.string()),
                 ("processed_at", pa.timestamp("us", tz="UTC")),
                 ("processed_by", pa.string()),
-                ("offset", pa.int64()),
             ],
         )
 
@@ -124,7 +120,6 @@ class InvalidEventTuple(NamedTuple):
     errors: list[str]
     processed_at: datetime
     processed_by: str
-    offset: int | None
 
 
 class InvalidEvent(BaseModel):
@@ -132,7 +127,6 @@ class InvalidEvent(BaseModel):
     errors: list[str]
     processed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     processed_by: str = "futurae_assignment.pipeline"
-    offset: int | None = None
 
     def to_tuple(self) -> InvalidEventTuple:
         return InvalidEventTuple(
@@ -140,7 +134,6 @@ class InvalidEvent(BaseModel):
             errors=self.errors,
             processed_at=self.processed_at,
             processed_by=self.processed_by,
-            offset=self.offset,
         )
 
     @classmethod
@@ -151,7 +144,6 @@ class InvalidEvent(BaseModel):
                 ("errors", pa.list_(pa.string())),
                 ("processed_at", pa.timestamp("us", tz="UTC")),
                 ("processed_by", pa.string()),
-                ("offset", pa.int64()),
             ],
         )
 

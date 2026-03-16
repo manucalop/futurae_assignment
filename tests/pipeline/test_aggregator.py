@@ -19,7 +19,6 @@ def _make_event_tuple(**overrides):
         user_id="u1",
         processed_at=datetime(2025, 1, 15, 10, 30, tzinfo=UTC),
         processed_by="test",
-        offset=None,
     )
     return EventTuple(**(defaults | overrides))
 
