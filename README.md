@@ -112,7 +112,7 @@ Columnar storage suits the ad-hoc analytical queries that analytics and ML teams
 
 **Aggregated metrics -> Bigtable**
 
-Metrics are keyed by `(service, date, hour, minute)` — a natural row key for Bigtable. Sub-millisecond point lookups serve dashboards and alerting, and the sorted key layout makes time-range scans for a given service sequential. BigQuery would add unnecessary latency for these simple lookups.
+Metrics use the row key `service_id#reverse_ts` where `reverse_ts` is the 9's complement of the minute-bucket timestamp (each digit `d` replaced with `9 - d`, e.g. `2026-03-17T14:30` → `7973-96-82T85:69`). This sorts rows newest-first within each service, so a prefix scan on `service_id#` returns the most recent metrics without needing to compute range boundaries — ideal for dashboards and alerting. The format stays human-readable in the key visualizer and `cbt` CLI. BigQuery would add unnecessary latency for these simple lookups.
 
 ### Schema evolution
 
