@@ -9,7 +9,7 @@ root_path = Path(__file__).parent.parent
 
 
 class LoggingConfig(BaseModel):
-    level: str = "DEBUG"
+    level: str = "INFO"
     format: str = "%(asctime)s - %(name)s - %(levelname)s: %(message)s"
 
 
